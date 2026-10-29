@@ -1,15 +1,16 @@
 <p align="center">
-  <img src="assets/dialog-motion.gif" alt="A dialog component's dimensional drawing drawing itself: header close-up, pull back to the plan view, layers lifting into an exploded view, then the full sheet" width="100%">
+  <img src="assets/dialog-motion.gif" alt="A dimensional drawing sheet being drawn and animated" width="100%">
 </p>
 
-<h1 align="center">dimensional-drawing ✏️📐</h1>
+<h1 align="center">dim_dibujo ✏️📐</h1>
 
 <p align="center">
-  <b>Give it a UI component, get back a one-page technical drawing of it.</b><br>
-  Paddings, gaps, corner radii, layers and viewport placement, measured and labeled like Apple's dimensional drawings.
+  <b>Dimensional drawing for interfaces, architecture, and engineering.</b><br>
+  Create clear, traceable technical sheets with coordinated views, dimensions, details, and explicit verification status.
 </p>
 
 <p align="center">
+  <a href="#capabilities">Capabilities</a> ·
   <a href="#install">Install</a> ·
   <a href="#use-it">Use it</a> ·
   <a href="#make-it-move">Make it move</a> ·
@@ -18,100 +19,96 @@
 
 ---
 
-Apple publishes [dimensional drawings](https://developer.apple.com/accessories/dimensional-drawings/) for every device so accessory makers can build cases that fit. They are calm, dense and beautiful: one sheet, a few views, tiny detail circles, numbers everywhere.
+The project began with the visual discipline of dimensional drawings: a clear sheet, multiple views, precise annotations, detail references, and dimensions that can be checked. It now extends that approach to architecture and engineering while preserving the original UI-component and physical-product workflows.
 
-This repo teaches your agent to draw **your components** the same way. A card or a dialog becomes a spec sheet you could hand to anyone and they would rebuild its *architecture*: paddings, gaps, radii, layers, how it sits in the viewport. Copy and content are left out on purpose, so the drawing stays true when the text changes.
+## Capabilities
 
-## What's inside 🎁
-
-```
-skills/
-├── dimensional-drawing/          the drawing skill
-│   ├── SKILL.md
-│   └── examples/                 card + dialog sheets (single HTML files)
-└── dimensional-drawing-motion/   turns a sheet into a ~10 s film
-    ├── SKILL.md
-    ├── templates/                reference scene + stylesheet
-    └── adapters/
-        ├── claude-motion.md      Claude's Motion artifact (primary)
-        └── headless/             Playwright + ffmpeg, no Claude needed
-```
-
-### The house rules
-
-| | |
+| Mode | Examples |
 |---|---|
-| ⚫️ **Monochrome** | grays only; things are told apart by line weight, dashes and hatches |
-| 🧱 **Architecture, not content** | `TITLE SLOT · FLEX`, `ACTION · HUG`, `CONTENT SLOT · FILL` |
-| 🔤 **Variables, not numbers** | `S1`, `R2`, `H1 = 2·S1 + H3`, `R2 = R1 − B − S6` |
-| 🏷️ **Unbranded** | neutral names like `UI-CARD-001` |
-| 🙅 **Never invent values** | unknowns stay `[TBD]` |
+| **UI components** | Layout anatomy, spacing, radii, layers, responsive behavior, and viewport placement |
+| **Physical products** | Orthographic views, sections, part details, and published dimensions |
+| **Architecture** | Site plans, floor plans, roof plans, elevations, sections, schedules, and construction details |
+| **Structural engineering** | Foundation layouts, concrete and steel members, reinforcement details, connections, and schedules based on verified design data |
+| **Civil engineering and services** | Grading, roads, profiles, cross-sections, water supply, drainage, utility plans, and infrastructure details |
+
+The skill uses discipline-specific reference guides so an agent can load the guidance relevant to the requested drawing.
+
+## What's inside
+
+~~~
+skills/
+├── dimensional-drawing/
+│   ├── SKILL.md
+│   ├── examples/                 Existing UI component sheets (HTML)
+│   └── references/
+│       ├── architecture.md
+│       ├── structural-engineering.md
+│       ├── civil-infrastructure.md
+│       └── cad-bim-output.md
+└── dimensional-drawing-motion/   Animates a finished sheet
+    ├── SKILL.md
+    ├── templates/
+    └── adapters/
+~~~
+
+## Drawing principles
+
+- **Traceable dimensions:** use verified values or transparent derivations; mark unknowns [TBD] or [VERIFY].
+- **Coordinated views:** plans, elevations, sections, details, profiles, and schedules must agree.
+- **Explicit scale and units:** do not confuse model units, pixels, and plotted dimensions.
+- **Readable technical hierarchy:** lineweights, hatches, dimensions, labels, and references remain legible at output size.
+- **No invented engineering data:** structural, geotechnical, hydraulic, survey, or code-critical values must come from the project source or a verified method.
+- **Honest deliverable status:** a drawing-only consistency check is not structural analysis, code approval, or professional sign-off.
+
+For parametric UI/product drawings, variable codes and formulas are used when they improve traceability. For architectural and engineering drawings, verified construction dimensions are shown directly where appropriate.
 
 ## Install
 
+Clone this repository and copy the skills you need.
+
 **Claude Code**
 
-```bash
-git clone https://github.com/enesozturk/dimensional-drawing
-cp -r dimensional-drawing/skills/* ~/.claude/skills/
-```
+~~~bash
+git clone https://github.com/ARRIAGA0182/dim_dibujo.git
+cp -r dim_dibujo/skills/* ~/.claude/skills/
+~~~
 
-**claude.ai / Claude desktop:** zip a skill folder (for example `skills/dimensional-drawing`) and add it under *Settings → Capabilities → Skills*.
+**claude.ai / Claude desktop:** zip the required skill folder (for example, skills/dimensional-drawing) and add it under Settings → Capabilities → Skills, where supported by your account.
 
-**Any other agent** (Codex, Cursor, Gemini CLI, …): use the [`skills`](https://skills.sh) CLI, or point your agent at the `SKILL.md` files.
-
-```bash
-npx skills add enesozturk/dimensional-drawing
-```
+**Other agents:** point the agent to the relevant SKILL.md and its reference files, or use a compatible skills installer.
 
 ## Use it
 
-Ask for a drawing and point at the source (a repo file, a Storybook story, a URL, a screenshot):
+Provide a source and describe the required drawing, intended use, units, scale, and output format. Useful examples:
 
-> Make a dimensional drawing of the `Card` component in `src/components/Card.tsx`
+- “Create a dimensioned architectural floor plan from these supplied measurements. List any missing dimensions.”
+- “Create a section and reinforcement-detail sheet from this approved structural detail. Do not infer missing bar sizes or spacing.”
+- “Create a longitudinal profile for this water-supply line from the supplied stations and elevations. Preserve the coordinate and vertical datum.”
+- “Create a dimensional drawing of the Card component in the source repository.”
+- “Draw the anatomy of this dialog component using the existing monochrome style.”
 
-> Draw the anatomy of our settings dialog, same style as the examples
+The skill can create self-contained HTML/SVG sheets when suitable tools are available. Native DWG, DXF, IFC, or RVT output depends on the available compatible toolchain; the skill must not claim to have created or validated a native file when it has not.
 
-You get a title block with the key variables on top, then one dense sheet: notes, plan view, exploded layers, detail views (nested corner, radii, body), and variable tables.
+## Make it move
 
-It works for physical things too (third-angle views, mm, published specs only). Try a thermos 🫖.
+The separate dimensional-drawing-motion skill animates a finished sheet like a pen drawing it while the camera moves across the paper.
 
-## Make it move 🎬
+- With a compatible Motion artifact workflow, export the finished animation as MP4.
+- For the headless renderer, see skills/dimensional-drawing-motion/adapters/headless; it requires the documented runtime dependencies.
 
-The motion skill animates a finished sheet like a pen drawing it while a camera moves over the paper:
-
-1. close-up on the header as its lines draw in
-2. pull back to the plan view while the rest draws
-3. layers lift off the plan into the exploded view (strokes first, fills after, so nothing flashes)
-4. pull back to the full sheet as the remaining views draw in
-
-The scene is a pure function of time, so it runs in two places:
-
-| | |
-|---|---|
-| **With Claude** | ask *"animate this drawing"*. Claude builds it in the **Motion** artifact and you export MP4. This is the primary target and where the timing was tuned. |
-| **Without Claude** | `cd skills/dimensional-drawing-motion/adapters/headless && npm install`, then `node render.mjs --scene ../../templates/scene-dialog.js --css ../../templates/base.css --out dialog.mp4`. Needs Node 18+ and ffmpeg. |
-
-> [!NOTE]
-> Optimized for Claude Motion. The headless renderer is tested with Playwright (Chromium) + ffmpeg. Other animation libraries (Remotion, Motion Canvas, GSAP, Lottie…) are **not tested**.
+Animation is a presentation layer. It does not replace dimension checks or discipline review.
 
 ## Examples
 
-**Dialog**: fixed width, scrim, viewport placement, header controls, footer actions
+The current HTML examples demonstrate the original UI-component workflow:
 
-<img src="assets/dialog-sheet.png" alt="Dimensional drawing of a dialog component" width="100%">
+- [Dialog sheet](skills/dimensional-drawing/examples/dialog-sheet.html)
+- [Card sheet](skills/dimensional-drawing/examples/card-sheet.html)
 
-**Card**: flexible width, body well, nested corner, shadow envelope
+The architecture and engineering reference guides define conventions and QA rules; they do not claim that discipline-specific sample drawings or native CAD/BIM exporters are included.
 
-<img src="assets/card-sheet.png" alt="Dimensional drawing of a card component" width="100%">
+## Credits and license
 
-Open the HTML versions in [`skills/dimensional-drawing/examples`](skills/dimensional-drawing/examples). The full film is [`assets/dialog-motion.mp4`](assets/dialog-motion.mp4).
+The original UI/product drawing approach was inspired by [Apple's accessory dimensional drawings](https://developer.apple.com/accessories/dimensional-drawings/) and [Andreas Storm](https://x.com/avstorm).
 
-## Thanks 💌
-
-- [Apple's accessory dimensional drawings](https://developer.apple.com/accessories/dimensional-drawings/), the north star
-- [Andreas Storm](https://x.com/avstorm), whose post started this
-
-## License
-
-MIT © Enes Ozturk. Draw all the things.
+See the repository LICENSE for licensing terms.
